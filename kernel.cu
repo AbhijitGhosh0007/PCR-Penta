@@ -16,8 +16,8 @@ __global__ void initialize(double *d_a, double *d_b, double *d_c, double *d_d, d
            else if (id == n-2)	d_e[i] = 0.0;           
            else if (id == n-1)	{d_d[i] = 1.0;		d_e[i] = 0.0;}*/
 	       
-	   	   d_a[g_id] = 1.0; 	d_b[g_id] = -4.0; 	d_c[g_id] = 6.0; 
-	   	   d_d[g_id] = -4.0; 	d_e[g_id] = 1.0; 	d_y[g_id] = 1.0;           
+	   		d_a[g_id] = 1.0; 	d_b[g_id] = -4.0; 	d_c[g_id] = 6.0; 
+	   		d_d[g_id] = -4.0; 	d_e[g_id] = 1.0; 	d_y[g_id] = 1.0;           
            if (eqn == 0)   {d_a[g_id] = 0.0; 	d_b[g_id] = 1.0; 	d_c[g_id] = 5.0;}
            if (eqn == 1)    d_a[g_id] = 0.0;	              
            if (eqn == n-2)  d_e[g_id] = 0.0;	              
@@ -30,14 +30,14 @@ __global__ void initialize(double *d_a, double *d_b, double *d_c, double *d_d, d
 
 // this kernel will Parallely solves the pentadiagonal systems of size <= 1024
 __global__ void pcr_penta(double *d_a, 
-						  double *d_b, 
-						  double *d_c, 
-						  double *d_d, 
-						  double *d_e, 
-						  double* d_y, 
-						  int num_split,		// number of splitting  
-						  int n)
-	{ 
+			  			  double *d_b, 
+			  			  double *d_c, 
+			  			  double *d_d, 
+			              double *d_e, 
+			              double* d_y, 
+			  			  int num_split,		// number of splitting  
+			 			  int n)
+{ 
 	int id = threadIdx.x; 	// equation id
 	int j = blockIdx.x;		// system id
 	int g_id = j*n + id;	// global equation id
@@ -54,7 +54,7 @@ __global__ void pcr_penta(double *d_a,
 	d[id] = d_d[g_id]; 		e[id] = d_e[g_id]; 		x[id] = d_y[g_id];
 	
 // waiting for every thread to finish copying
-    __syncthreads();
+   	 __syncthreads();
      
 	int delta = 1;	int p1, p2, q1, q2; 
     double alfa1, alfa2, a1, b1, c1, d1, e1, k1, a2, b2, c2, d2, e2, k2;
@@ -151,7 +151,7 @@ __global__ void pcr_penta(double *d_a,
 	}
 	if(id >= n-delta && id < delta)
   	   d_y[g_id] = x[id]/c[id];
-	}
+}
 
 
 
