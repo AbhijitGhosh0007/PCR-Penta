@@ -1,9 +1,15 @@
+// Abhijit Ghosh & Chittaranjan Mishra
+// October, 2020
 
+/**** This code measures the computational times of the three different implemetation
+techniques for solving various batch of pentadiagonal systems. By little modification
+one can also print the computed solutions ****/
+
+
+/**** n = should be power of two always. However slight modification can be done to 
+support any n ****/
 
 #include "performanalysis.h"
-
-/// *** n = should be power of two always *** /// 
-// However slight modification can be done to support any n 
  
 void time_shared_cached_shared_tile_splitting(const int n, const int num_sys, float *time1)
 {	
