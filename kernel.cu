@@ -45,9 +45,9 @@ __global__ void pcr_penta(double *d_a,
 // allocating memory in the shared memory for all 5 diags and right hand vector
 	extern __shared__ double array [];
 		 
-	double *a = array;	 				double *b = (double*) &a[n];
-    double *c = (double*) &b[n];	 	double *d = (double*) &c[n];
-    double *e = (double*) &d[n];	 	double *x = (double*) &e[n];
+	double *a = array;	 		double *b = (double*) &a[n];
+	double *c = (double*) &b[n];	 	double *d = (double*) &c[n];
+	double *e = (double*) &d[n];	 	double *x = (double*) &e[n];
     
 // copying system from global memory to shared memory
 	a[id] = d_a[g_id]; 		b[id] = d_b[g_id]; 		c[id] = d_c[g_id]; 
@@ -57,90 +57,90 @@ __global__ void pcr_penta(double *d_a,
    	 __syncthreads();
      
 	int delta = 1;	int p1, p2, q1, q2; 
-    double alfa1, alfa2, a1, b1, c1, d1, e1, k1, a2, b2, c2, d2, e2, k2;
+    	double alfa1, alfa2, a1, b1, c1, d1, e1, k1, a2, b2, c2, d2, e2, k2;
     
 // PCR-Penta reduction loop
   	for(int l = 0; l< num_split-1; l++)
 	{
-		// Calculating ids of the required neighbors
+	// Calculating ids of the required neighbors
 		p1 = id - delta;	  p2 = id - 2*delta;	q1 = id + delta;	  q2 = id + 2*delta;
-
+		
 	//Reduction-I            
 		if(p2 >= 0)	// if both neighbors required in Reduction-I exist in the system
-        {       
-            alfa1 = 0.0;		alfa2 = 0.0;
-            if((id - 3*delta) >= 0)
-                if( b[p2] != 0.0 )	alfa1 = -a[p1]/b[p2];
-            if(q1 <= n-1)
-                 if( d[id] != 0.0 )	alfa2 = -e[p1]/d[id];
+        	{       
+            		alfa1 = 0.0;		alfa2 = 0.0;
+            		if((id - 3*delta) >= 0)
+                		if( b[p2] != 0.0 )	alfa1 = -a[p1]/b[p2];
+            		if(q1 <= n-1)
+                 		if( d[id] != 0.0 )	alfa2 = -e[p1]/d[id];
 
-            a1 = alfa1*a[p2];	     					b1 = alfa1*c[p2] + b[p1] + alfa2*a[id];
-            c1 = alfa1*d[p2] + c[p1] + alfa2*b[id];		d1 = alfa1*e[p2] + d[p1] + alfa2*c[id];
-            e1 = alfa2*e[id]; 							k1 = alfa1*x[p2] + x[p1] + alfa2*x[id];
-        }
+            		a1 = alfa1*a[p2];	     			b1 = alfa1*c[p2] + b[p1] + alfa2*a[id];
+            		c1 = alfa1*d[p2] + c[p1] + alfa2*b[id];		d1 = alfa1*e[p2] + d[p1] + alfa2*c[id];
+            		e1 = alfa2*e[id]; 				k1 = alfa1*x[p2] + x[p1] + alfa2*x[id];
+        	}
 
-        if(p1 >= 0 && p2 < 0)	// if only one neighbor required in Reduction-I exist 
-        {   					// in the system and other lies outside of the system
-         	alfa2 = 0.0;
-            if(q1 <= n-1)
-              	 if( d[id] != 0.0 ) 	alfa2 = -e[p1]/d[id]; 
+        	if(p1 >= 0 && p2 < 0)	// if only one neighbor required in Reduction-I exist 
+        	{   					// in the system and other lies outside of the system
+         		alfa2 = 0.0;
+            		if(q1 <= n-1)
+              	 		if( d[id] != 0.0 ) 	alfa2 = -e[p1]/d[id]; 
 
-            a1 = 0.0;						b1 = 0.0;
-            c1 = c[p1] + alfa2*b[id];		d1 = d[p1] + alfa2*c[id];
-            e1 = alfa2*e[id]; 				k1 = x[p1] + alfa2*x[id];
-         }
+           		a1 = 0.0;				b1 = 0.0;
+            		c1 = c[p1] + alfa2*b[id];		d1 = d[p1] + alfa2*c[id];
+            		e1 = alfa2*e[id]; 			k1 = x[p1] + alfa2*x[id];
+         	}
 
 	// Reduction-II
-        if(q2 <= n-1 )	// if both neighbors required in Reduction-II exist in the system
-        { 	
-        	alfa1 = 0.0; 		alfa2 = 0.0;
+        	if(q2 <= n-1 )	// if both neighbors required in Reduction-II exist in the system
+        	{ 	
+        		alfa1 = 0.0; 		alfa2 = 0.0;
 
-            if(p1 >= 0)
-            	if( b[id] != 0.0 )		alfa1 = -a[q1]/b[id];
-             if((id + 3*delta) <= n-1)
-             	if( d[q2] != 0.0)   	alfa2 = -e[q1]/d[q2];
+            		if(p1 >= 0)
+            			if( b[id] != 0.0 )	alfa1 = -a[q1]/b[id];
+             		if((id + 3*delta) <= n-1)
+             			if( d[q2] != 0.0)   	alfa2 = -e[q1]/d[q2];
 
-             a2 = alfa1*a[id];							b2 = alfa1*c[id] + b[q1] + alfa2*a[q2];
-             c2 = alfa1*d[id] + c[q1] + alfa2*b[q2];	d2 = alfa1*e[id] + d[q1] + alfa2*c[q2];
-             e2 = alfa2*e[q2]; 							k2 = alfa1*x[id] + x[q1] + alfa2*x[q2];
-          }
+             		a2 = alfa1*a[id];				b2 = alfa1*c[id] + b[q1] + alfa2*a[q2];
+             		c2 = alfa1*d[id] + c[q1] + alfa2*b[q2];		d2 = alfa1*e[id] + d[q1] + alfa2*c[q2];
+             		e2 = alfa2*e[q2]; 				k2 = alfa1*x[id] + x[q1] + alfa2*x[q2];
+          	}
           
 		if(q1 <= n-1 && q2 > n-1) 	// if only one neighbor required in Reduction-II exist 
 		{							// in the system and other lies outside of the system
-            alfa1 = 0.0;
+            		alfa1 = 0.0;
 			if(p1 >= 0)
-            	if(b[id] != 0.0)   	alfa1 = -a[q1]/b[id];
+            			if(b[id] != 0.0)   	alfa1 = -a[q1]/b[id];
 
-            a2 = alfa1*a[id];				b2 = alfa1*c[id] + b[q1];
-            c2 = alfa1*d[id] + c[q1];		d2 = 0.0;
-            e2 = 0.0; 						k2 = alfa1*x[id] + x[q1];
-         }
+            		a2 = alfa1*a[id];		b2 = alfa1*c[id] + b[q1];
+		   	c2 = alfa1*d[id] + c[q1];	d2 = 0.0;
+            		e2 = 0.0; 			k2 = alfa1*x[id] + x[q1];
+         	}
 
 // Reduction-III
-         if(p1 >= 0)
-         {
-          	if( c1 != 0.0 )   	alfa1 = b[id]/c1;
-            	a1 = alfa1*a1;	b1 = alfa1*b1;	c1 = alfa1*d1;	d1 = alfa1*e1;	k1 = alfa1*k1;
-	     }
-         else	{a1 = 0.0;	b1 = 0.0;	c1 = 0.0;	d1 = 0.0;	k1 = 0.0;}
+         	if(p1 >= 0)
+         	{
+          		if( c1 != 0.0 )   	alfa1 = b[id]/c1;
+            		a1 = alfa1*a1;	b1 = alfa1*b1;	c1 = alfa1*d1;	d1 = alfa1*e1;	k1 = alfa1*k1;
+	     	}
+         	else	{a1 = 0.0;	b1 = 0.0;	c1 = 0.0;	d1 = 0.0;	k1 = 0.0;}
 
-         if(q1 <= n-1)
-         {
-	     	if( c2 != 0.0 )   	alfa2 = d[id]/c2;
-            c2 = alfa2*b2;  b2 = alfa2*a2;	d2 = alfa2*d2; 	e2 = alfa2*e2;	k2 = alfa2*k2;
-	      }
-	      else	{b2 = 0.0;	c2 = 0.0;	d2 = 0.0;	e2 = 0.0;	k2 = 0.0;}
+         	if(q1 <= n-1)
+         	{
+	     		if( c2 != 0.0 )   	alfa2 = d[id]/c2;
+            		c2 = alfa2*b2;  b2 = alfa2*a2;	d2 = alfa2*d2; 	e2 = alfa2*e2;	k2 = alfa2*k2;
+	      	}
+	      	else	{b2 = 0.0;	c2 = 0.0;	d2 = 0.0;	e2 = 0.0;	k2 = 0.0;}
 
 		// waiting for every threads to complete Reduction-I and -II 
-		  __syncthreads();
+		__syncthreads();
 		  
-		  delta*=2;
-	      b[id] = b1 - a[id] + b2;		c[id] = c1 - c[id] + c2;
-	      d[id] = d1 - e[id] + d2; 		x[id] = k1 - x[id] + k2;
-	      a[id] = a1; 					e[id] = e2;
+		delta*=2;
+	      	b[id] = b1 - a[id] + b2;	c[id] = c1 - c[id] + c2;
+	      	d[id] = d1 - e[id] + d2; 	x[id] = k1 - x[id] + k2;
+	      	a[id] = a1; 			e[id] = e2;
 		// waiting for every threads to complete Reduction-III 
-    	  __syncthreads();  	   	 
-    }
+    	 	__syncthreads();  	   	 
+    	}
 // for the last loop system size is less than or equal to 2, thus efficient to solve them manually
 	if(id < n-delta)
 	{
@@ -150,7 +150,7 @@ __global__ void pcr_penta(double *d_a,
 		d_y[g_id + delta] = (c[id]*x[iid]-b[iid]*x[id])/deno;
 	}
 	if(id >= n-delta && id < delta)
-  	   d_y[g_id] = x[id]/c[id];
+		d_y[g_id] = x[id]/c[id];
 }
 
 
