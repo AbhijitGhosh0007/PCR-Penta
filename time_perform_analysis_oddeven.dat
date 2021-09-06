@@ -1,4 +1,4 @@
-Computational times of the three spliting techniques when system size (n) >1024.
+Computational times (in mili-second) of the three spliting techniques when system size (n) >1024.
 For n<= 1024, only PCR-Penta is used without any spliting.
 m -> batch size
 Splitting 1 -> shared_cached_shared_tiles
